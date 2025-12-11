@@ -3,12 +3,6 @@ set -euo pipefail
 
 echo "Starting deployment..."
 
-# Force non-interactive pnpm and avoid permission issues with per-user configs
-export CI=true
-export NPM_CONFIG_USERCONFIG=/dev/null
-export PNPM_CONFIG_GLOBALCONFIG=/dev/null
-export PNPM_DISABLE_SELF_UPDATE_CHECK=1
-
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
@@ -31,9 +25,8 @@ require_tool pnpm
 require_tool git
 
 if [[ "$ROOT" != "$DEPLOY_DIR" ]]; then
-  echo "Error: repository root ($ROOT) does not match expected deploy dir ($DEPLOY_DIR)."
-  echo "The systemd service points to $DEPLOY_DIR. Run this script from that location."
-  exit 1
+  echo "Warning: repository root ($ROOT) does not match expected deploy dir ($DEPLOY_DIR)."
+  echo "The systemd service points to $DEPLOY_DIR. Make sure files are deployed there."
 fi
 
 DEPS_BACKEND_CHANGED=false
@@ -80,12 +73,10 @@ fi
 install_backend_deps() {
   echo "Installing backend dependencies..."
   cd "$ROOT/backend"
-  # remove existing node_modules to avoid pnpm interactive removal
-  rm -rf node_modules
   if [[ -f pnpm-lock.yaml ]]; then
-    pnpm install --frozen-lockfile --prefer-offline --force
+    pnpm install --frozen-lockfile
   else
-    pnpm install --prefer-offline --force
+    pnpm install
   fi
   cd "$ROOT"
 }
@@ -93,11 +84,10 @@ install_backend_deps() {
 install_frontend_deps() {
   echo "Installing frontend dependencies..."
   cd "$ROOT/frontend"
-  rm -rf node_modules
   if [[ -f pnpm-lock.yaml ]]; then
-    pnpm install --frozen-lockfile --prefer-offline --force
+    pnpm install --frozen-lockfile
   else
-    pnpm install --prefer-offline --force
+    pnpm install
   fi
   cd "$ROOT"
 }
@@ -110,23 +100,7 @@ if [[ "$DEPS_FRONTEND_CHANGED" == true ]]; then
   install_frontend_deps
 fi
 
-build_frontend=false
 if [[ "$FRONTEND_CHANGED" == true ]] || [[ "$DEPS_FRONTEND_CHANGED" == true ]]; then
-  build_frontend=true
-fi
-
-# Build if dist is missing even when git diff is quiet
-if [[ ! -f "$ROOT/frontend/dist/index.html" ]]; then
-  echo "Frontend dist missing; will build."
-  build_frontend=true
-fi
-
-# Build if backend changed and we serve frontend from backend (to keep dist in sync)
-if [[ "$BACKEND_CHANGED" == true ]]; then
-  build_frontend=true
-fi
-
-if [[ "$build_frontend" == true ]]; then
   echo "Building frontend..."
   cd "$ROOT/frontend"
   pnpm build
@@ -146,7 +120,6 @@ cat > "$ROOT/app" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 cd /opt/beagle-challenge/backend
-# ensure production uses built frontend served by backend on port 8082
 exec env NODE_ENV=production PORT=${PORT:-8082} pnpm start
 EOF
 chmod +x "$ROOT/app"
