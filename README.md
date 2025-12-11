@@ -25,17 +25,19 @@ A full-stack application that displays real-time weather radar data from NOAA's 
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    cd beagle-challenge
    ```
 
 2. **Install backend dependencies**
+
    ```bash
    cd backend
    pnpm install
@@ -50,10 +52,12 @@ A full-stack application that displays real-time weather radar data from NOAA's 
 ### Running the Application
 
 1. **Start the backend** (in one terminal)
+
    ```bash
    cd backend
    pnpm start
    ```
+
    The API will be available at `http://localhost:3001`
 
 2. **Start the frontend** (in another terminal)
@@ -65,11 +69,11 @@ A full-stack application that displays real-time weather radar data from NOAA's 
 
 ## API Endpoints
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/radar/latest` | Returns the latest radar PNG image |
+| Endpoint                  | Description                             |
+| ------------------------- | --------------------------------------- |
+| `GET /api/radar/latest`   | Returns the latest radar PNG image      |
 | `GET /api/radar/metadata` | Returns timestamp and geographic bounds |
-| `GET /health` | Health check endpoint |
+| `GET /health`             | Health check endpoint                   |
 
 ## Data Source
 
@@ -83,11 +87,13 @@ A full-stack application that displays real-time weather radar data from NOAA's 
 ## Technology Stack
 
 ### Backend
+
 - **Express.js** - Web server framework
 - **sharp** - PNG image generation from raw pixel data
 - **zlib** - Built-in gzip decompression
 
 ### Frontend
+
 - **React 18** - UI framework
 - **Leaflet** - Interactive maps (via react-leaflet)
 - **Vite** - Build tool and dev server
@@ -117,18 +123,17 @@ A full-stack application that displays real-time weather radar data from NOAA's 
 
 ## Color Scale
 
-| dBZ Range | Color | Interpretation |
-|-----------|-------|----------------|
-| < 10 | Transparent | No significant precipitation |
-| 10-20 | Teal/Blue-green | Very light rain |
-| 20-30 | Green | Light rain |
-| 30-40 | Yellow | Moderate rain |
-| 40-50 | Orange/Red | Heavy rain |
-| 50-60 | Red/Dark red | Very heavy rain |
-| 60-70 | Magenta/Purple | Severe |
-| 70+ | White/Light purple | Extreme |
+| dBZ Range | Color              | Interpretation               |
+| --------- | ------------------ | ---------------------------- |
+| < 10      | Transparent        | No significant precipitation |
+| 10-20     | Teal/Blue-green    | Very light rain              |
+| 20-30     | Green              | Light rain                   |
+| 30-40     | Yellow             | Moderate rain                |
+| 40-50     | Orange/Red         | Heavy rain                   |
+| 50-60     | Red/Dark red       | Very heavy rain              |
+| 60-70     | Magenta/Purple     | Severe                       |
+| 70+       | White/Light purple | Extreme                      |
 
 ## License
 
 MIT
-
