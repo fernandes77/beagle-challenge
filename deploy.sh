@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Ensure non-interactive/CI mode for pnpm to avoid TTY prompts
+export CI=true
+
 echo "Starting deployment..."
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -100,7 +103,18 @@ if [[ "$DEPS_FRONTEND_CHANGED" == true ]]; then
   install_frontend_deps
 fi
 
+build_frontend=false
 if [[ "$FRONTEND_CHANGED" == true ]] || [[ "$DEPS_FRONTEND_CHANGED" == true ]]; then
+  build_frontend=true
+fi
+
+# Build if dist is missing even when git diff is quiet
+if [[ ! -f "$ROOT/frontend/dist/index.html" ]]; then
+  echo "Frontend dist missing; will build."
+  build_frontend=true
+fi
+
+if [[ "$build_frontend" == true ]]; then
   echo "Building frontend..."
   cd "$ROOT/frontend"
   pnpm build
