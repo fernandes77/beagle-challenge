@@ -1,53 +1,47 @@
-import { useState, useEffect } from 'react'
-import RadarMap from './components/RadarMap'
-import Legend from './components/Legend'
+import { useState, useEffect } from "react";
+import RadarMap from "./components/RadarMap";
+import Legend from "./components/Legend";
 
 function App() {
-  const [metadata, setMetadata] = useState(null)
-  const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [lastUpdate, setLastUpdate] = useState(null)
+  const [metadata, setMetadata] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState(null);
 
   const fetchMetadata = async () => {
     try {
-      const response = await fetch('/api/radar/metadata')
+      const response = await fetch("/api/radar/metadata");
       if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`)
+        throw new Error(`HTTP error: ${response.status}`);
       }
-      const data = await response.json()
-      setMetadata(data)
-      setLastUpdate(new Date())
-      setError(null)
-      setLoading(false)
+      const data = await response.json();
+      setMetadata(data);
+      setLastUpdate(new Date());
+      setError(null);
+      setLoading(false);
     } catch (err) {
-      console.error('Error fetching metadata:', err)
-      setError(err.message)
-      setLoading(false)
+      console.error("Error fetching metadata:", err);
+      setError(err.message);
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    // Initial fetch
-    fetchMetadata()
-
-    // Refresh every 2 minutes
-    const interval = setInterval(fetchMetadata, 2 * 60 * 1000)
-
-    return () => clearInterval(interval)
-  }, [])
+    fetchMetadata();
+  }, []);
 
   const formatTimestamp = (timestamp) => {
-    if (!timestamp) return 'Unknown'
-    const date = new Date(timestamp)
-    return date.toLocaleString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZoneName: 'short'
-    })
-  }
+    if (!timestamp) return "Unknown";
+    const date = new Date(timestamp);
+    return date.toLocaleString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short",
+    });
+  };
 
   return (
     <div className="app">
@@ -55,7 +49,9 @@ function App() {
         <div className="header-content">
           <div className="title-section">
             <h1>Weather Radar</h1>
-            <span className="subtitle">MRMS Reflectivity at Lowest Altitude</span>
+            <span className="subtitle">
+              MRMS Reflectivity at Lowest Altitude
+            </span>
           </div>
           <div className="info-section">
             {loading && <span className="loading-indicator">Loading...</span>}
@@ -64,7 +60,9 @@ function App() {
               <div className="timestamp-info">
                 <div className="data-time">
                   <span className="label">Radar Data:</span>
-                  <span className="value">{formatTimestamp(metadata.timestamp)}</span>
+                  <span className="value">
+                    {formatTimestamp(metadata.timestamp)}
+                  </span>
                 </div>
                 <div className="update-time">
                   <span className="label">Last Refresh:</span>
@@ -83,14 +81,20 @@ function App() {
 
       <footer className="footer">
         <p>
-          Data source: <a href="https://mrms.ncep.noaa.gov" target="_blank" rel="noopener noreferrer">NOAA MRMS</a>
-          {' | '}
+          Data source:{" "}
+          <a
+            href="https://mrms.ncep.noaa.gov"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            NOAA MRMS
+          </a>
+          {" | "}
           Updates every 2 minutes
         </p>
       </footer>
     </div>
-  )
+  );
 }
 
-export default App
-
+export default App;
