@@ -80,10 +80,12 @@ fi
 install_backend_deps() {
   echo "Installing backend dependencies..."
   cd "$ROOT/backend"
+  # remove existing node_modules to avoid pnpm interactive removal
+  rm -rf node_modules
   if [[ -f pnpm-lock.yaml ]]; then
-    pnpm install --frozen-lockfile --prefer-offline
+    pnpm install --frozen-lockfile --prefer-offline --force
   else
-    pnpm install --prefer-offline
+    pnpm install --prefer-offline --force
   fi
   cd "$ROOT"
 }
@@ -91,10 +93,11 @@ install_backend_deps() {
 install_frontend_deps() {
   echo "Installing frontend dependencies..."
   cd "$ROOT/frontend"
+  rm -rf node_modules
   if [[ -f pnpm-lock.yaml ]]; then
-    pnpm install --frozen-lockfile --prefer-offline
+    pnpm install --frozen-lockfile --prefer-offline --force
   else
-    pnpm install --prefer-offline
+    pnpm install --prefer-offline --force
   fi
   cd "$ROOT"
 }
