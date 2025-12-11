@@ -10,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const distPath = path.join(__dirname, "../frontend/dist");
+const distPath = path.resolve(__dirname, "../../frontend/dist");
 
 app.use(cors());
 
@@ -101,8 +101,6 @@ app.use(express.static(distPath));
 app.get("*", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
-
-app.set("trust proxy", true);
 
 app.listen(PORT, () => {
   console.log(`Weather radar backend running on port ${PORT}`);
