@@ -102,6 +102,8 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 
+app.set("trust proxy", true);
+
 app.listen(PORT, () => {
   console.log(`Weather radar backend running on port ${PORT}`);
   console.log(`API endpoints:`);
