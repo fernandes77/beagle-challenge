@@ -97,6 +97,7 @@ app.get("/api/radar/metadata", async (req, res) => {
 
 // Serve built frontend
 app.use(express.static(distPath));
+
 app.get("*", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
