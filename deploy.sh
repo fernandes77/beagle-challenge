@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Starting deployment..."
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+SERVICE_NAME="beagle-challenge"
+SYSTEMD_PATH="/etc/systemd/system/${SERVICE_NAME}.service"
+DEPLOY_DIR="/opt/beagle-challenge"
+
+has_prev_ref() {
+  git rev-parse --quiet HEAD@{1} >/dev/null
+}
+
+require_tool() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "Error: $1 is required but not found in PATH" >&2
+    exit 1
+  fi
+}
+
+require_tool pnpm
+require_tool git
+
+if [[ "$ROOT" != "$DEPLOY_DIR" ]]; then
+  echo "Warning: repository root ($ROOT) does not match expected deploy dir ($DEPLOY_DIR)."
+  echo "The systemd service points to $DEPLOY_DIR. Make sure files are deployed there."
+fi
+
+DEPS_BACKEND_CHANGED=false
+DEPS_FRONTEND_CHANGED=false
+BACKEND_CHANGED=false
+FRONTEND_CHANGED=false
+
+if has_prev_ref; then
+  if git diff --quiet HEAD@{1} HEAD -- backend/pnpm-lock.yaml backend/package.json 2>/dev/null; then
+    echo "Backend dependencies unchanged"
+  else
+    echo "Backend dependencies changed, will reinstall"
+    DEPS_BACKEND_CHANGED=true
+  fi
+
+  if git diff --quiet HEAD@{1} HEAD -- frontend/pnpm-lock.yaml frontend/package.json 2>/dev/null; then
+    echo "Frontend dependencies unchanged"
+  else
+    echo "Frontend dependencies changed, will reinstall"
+    DEPS_FRONTEND_CHANGED=true
+  fi
+
+  if git diff --quiet HEAD@{1} HEAD -- backend/ 2>/dev/null; then
+    echo "Backend sources unchanged"
+  else
+    echo "Backend changed"
+    BACKEND_CHANGED=true
+  fi
+
+  if git diff --quiet HEAD@{1} HEAD -- frontend/ 2>/dev/null; then
+    echo "Frontend sources unchanged"
+  else
+    echo "Frontend changed"
+    FRONTEND_CHANGED=true
+  fi
+else
+  echo "No previous git ref; treating everything as changed"
+  DEPS_BACKEND_CHANGED=true
+  DEPS_FRONTEND_CHANGED=true
+  BACKEND_CHANGED=true
+  FRONTEND_CHANGED=true
+fi
+
+install_backend_deps() {
+  echo "Installing backend dependencies..."
+  cd "$ROOT/backend"
+  if [[ -f pnpm-lock.yaml ]]; then
+    pnpm install --frozen-lockfile
+  else
+    pnpm install
+  fi
+  cd "$ROOT"
+}
+
+install_frontend_deps() {
+  echo "Installing frontend dependencies..."
+  cd "$ROOT/frontend"
+  if [[ -f pnpm-lock.yaml ]]; then
+    pnpm install --frozen-lockfile
+  else
+    pnpm install
+  fi
+  cd "$ROOT"
+}
+
+if [[ "$DEPS_BACKEND_CHANGED" == true ]]; then
+  install_backend_deps
+fi
+
+if [[ "$DEPS_FRONTEND_CHANGED" == true ]]; then
+  install_frontend_deps
+fi
+
+if [[ "$FRONTEND_CHANGED" == true ]] || [[ "$DEPS_FRONTEND_CHANGED" == true ]]; then
+  echo "Building frontend..."
+  cd "$ROOT/frontend"
+  pnpm build
+  cd "$ROOT"
+else
+  echo "Skipping frontend build"
+fi
+
+# Backend is plain Node; no build step, but ensure deps present
+if [[ "$BACKEND_CHANGED" == true ]] && [[ "$DEPS_BACKEND_CHANGED" == false ]]; then
+  echo "Backend changed, ensuring dependencies are present..."
+  install_backend_deps
+fi
+
+echo "Creating app launcher..."
+cat > "$ROOT/app" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+cd /opt/beagle-challenge/backend
+exec env NODE_ENV=production PORT=${PORT:-8082} pnpm start
+EOF
+chmod +x "$ROOT/app"
+
+echo "Copying systemd service file..."
+sudo cp "$ROOT/app.service" "$SYSTEMD_PATH"
+
+echo "Reloading systemd..."
+sudo systemctl daemon-reload
+
+echo "Restarting service ${SERVICE_NAME}..."
+sudo systemctl restart "${SERVICE_NAME}"
+
+echo "Checking service status..."
+sudo systemctl status "${SERVICE_NAME}" --no-pager
+
+echo "Deployment completed successfully!"
+

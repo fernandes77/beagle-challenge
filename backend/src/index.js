@@ -1,11 +1,16 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import { fetchLatestRadarData } from "./dataFetcher.js";
 import { parseGrib2 } from "./grib2Parser.js";
 import { renderRadarPng } from "./radarRenderer.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.join(__dirname, "../frontend/dist");
 
 app.use(cors());
 
@@ -88,6 +93,12 @@ app.get("/api/radar/metadata", async (req, res) => {
     console.error("Error serving metadata:", error);
     res.status(500).json({ error: "Failed to fetch radar metadata" });
   }
+});
+
+// Serve built frontend
+app.use(express.static(distPath));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
 app.listen(PORT, () => {
