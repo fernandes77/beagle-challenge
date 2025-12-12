@@ -14,26 +14,7 @@ const distPath = path.resolve(__dirname, "../../frontend/dist");
 
 app.use(cors());
 
-let radarCache = {
-  image: null,
-  metadata: null,
-  timestamp: null,
-  fetchedAt: null,
-};
-
-const CACHE_DURATION = 60 * 1000;
-
-function isCacheValid() {
-  if (!radarCache.fetchedAt) return false;
-  return Date.now() - radarCache.fetchedAt < CACHE_DURATION;
-}
-
 async function getRadarData() {
-  if (isCacheValid() && radarCache.image) {
-    console.log("Serving from cache");
-    return radarCache;
-  }
-
   console.log("Fetching fresh radar data...");
 
   try {
@@ -43,7 +24,8 @@ async function getRadarData() {
 
     const pngBuffer = await renderRadarPng(parsedData);
 
-    radarCache = {
+    console.log("Radar data processed successfully");
+    return {
       image: pngBuffer,
       metadata: {
         timestamp: parsedData.timestamp,
@@ -54,9 +36,6 @@ async function getRadarData() {
       timestamp: parsedData.timestamp,
       fetchedAt: Date.now(),
     };
-
-    console.log("Radar data processed successfully");
-    return radarCache;
   } catch (error) {
     console.error("Error fetching radar data:", error);
     throw error;
@@ -95,7 +74,6 @@ app.get("/api/radar/metadata", async (req, res) => {
   }
 });
 
-// Serve built frontend
 app.use(express.static(distPath));
 
 app.get("*", (req, res) => {
