@@ -49,12 +49,14 @@ function App() {
         <div className="header-content">
           <div className="title-section">
             <h1>Weather Radar</h1>
-            <span className="subtitle">
-              MRMS Reflectivity at Lowest Altitude
-            </span>
           </div>
           <div className="info-section">
-            {loading && <span className="loading-indicator">Loading...</span>}
+            {loading && (
+              <span className="loading-indicator">
+                <span className="spinner small" />
+                <span>Loading…</span>
+              </span>
+            )}
             {error && <span className="error-indicator">Error: {error}</span>}
             {metadata && (
               <div className="timestamp-info">

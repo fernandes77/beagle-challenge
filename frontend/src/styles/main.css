@@ -101,29 +101,29 @@ body {
 .loading-indicator {
   color: var(--accent-primary);
   font-size: 0.85rem;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-.loading-indicator::before {
-  content: "";
-  width: 8px;
-  height: 8px;
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent-primary);
   border-radius: 50%;
-  background: var(--accent-primary);
-  animation: pulse 1.5s ease-in-out infinite;
+  display: inline-block;
+  animation: spin 0.9s linear infinite;
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
+.spinner.small {
+  width: 14px;
+  height: 14px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

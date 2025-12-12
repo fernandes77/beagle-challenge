@@ -23,6 +23,7 @@ function RadarOverlay({ bounds, refreshKey }) {
 
   return (
     <ImageOverlay
+      key={refreshKey}
       url={imageUrl}
       bounds={bounds}
       opacity={opacity}
