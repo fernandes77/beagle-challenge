@@ -91,8 +91,6 @@ function App() {
           >
             NOAA MRMS
           </a>
-          {" | "}
-          Updates every 2 minutes
         </p>
       </footer>
     </div>
